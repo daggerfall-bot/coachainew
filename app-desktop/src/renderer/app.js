@@ -110,13 +110,50 @@ function addTip(tip) {
 }
 
 // ── Discord login ──
-$("discord-login").addEventListener("click", async () => {
-  // Ask the local server for the Discord authorize URL, open it in the real
-  // browser. The deep-link callback (coachai://auth?token=) returns the token.
-  if (!state.serverBaseUrl) return;
+function requireServerReady() {
+  if (!state.serverBaseUrl || !state.serverReady) {
+    alert("CoachAI is still starting. Wait a few seconds, then try again.");
+    return false;
+  }
+
+  return true;
+}
+
+const discordBtn = $("discord-login");
+
+discordBtn.addEventListener("click", async () => {
+  if (!requireServerReady()) return;
 
   window.desktop.openExternal(
     `${state.serverBaseUrl}/api/v1/auth/discord/start`,
+  );
+});
+
+// Add a simple generic email/Gmail login button without needing to edit HTML.
+const emailBtn = document.createElement("button");
+emailBtn.id = "email-login";
+emailBtn.className = discordBtn.className;
+emailBtn.style.marginTop = "12px";
+emailBtn.textContent = "Sign in with Email / Gmail";
+
+discordBtn.insertAdjacentElement("afterend", emailBtn);
+
+emailBtn.addEventListener("click", async () => {
+  if (!requireServerReady()) return;
+
+  const email = prompt("Enter your email address:");
+
+  if (!email) return;
+
+  const trimmed = email.trim().toLowerCase();
+
+  if (!trimmed.includes("@") || !trimmed.split("@")[1]?.includes(".")) {
+    alert("Please enter a valid email address.");
+    return;
+  }
+
+  window.desktop.openExternal(
+    `${state.serverBaseUrl}/api/v1/auth/email/start?email=${encodeURIComponent(trimmed)}`,
   );
 });
 

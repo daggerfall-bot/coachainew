@@ -12,7 +12,6 @@ const fs = require("fs");
 function findFreePort() {
   return new Promise((resolve, reject) => {
     const srv = net.createServer();
-
     srv.unref();
     srv.on("error", reject);
 
@@ -46,17 +45,12 @@ class LocalServer extends EventEmitter {
 
     const env = {
       ...process.env,
-
       COACHAI_LOCAL_MODE: "1",
       COACHAI_PORT: String(this.port),
-
-      // Use SQLite for the bundled local desktop app.
       DATABASE_URL: "sqlite+aiosqlite:///./coachai_local.db",
 
-      // IMPORTANT:
-      // Your bundled requirements intentionally do not include torch/torchvision.
-      // Do not force self_hosted until you actually ship the trained model and
-      // bundle the torch dependencies.
+      // IMPORTANT: packaged build should use API mode for now.
+      // Do not use self_hosted until torch/model packaging is finished.
       VISION_BACKEND: "api",
     };
 
@@ -69,15 +63,16 @@ class LocalServer extends EventEmitter {
         {
           cwd: backendDir,
           env,
-        }
+        },
       );
     } else {
-      const { app } = require("electron");
-      const exeName = process.platform === "win32"
-        ? "coachai-server.exe"
-        : "coachai-server";
+      const exeName =
+        process.platform === "win32" ? "coachai-server.exe" : "coachai-server";
 
       const serverBin = path.join(process.resourcesPath, "server", exeName);
+
+      this.emit("log", `resourcesPath=${process.resourcesPath}`);
+      this.emit("log", `serverBin=${serverBin}`);
 
       if (!fs.existsSync(serverBin)) {
         throw new Error(`Bundled server missing: ${serverBin}`);
@@ -103,15 +98,15 @@ class LocalServer extends EventEmitter {
       this.emit("error", err);
       this.emit("status", {
         state: "error",
-        message: String(err && err.message ? err.message : err),
+        message: err.message || String(err),
       });
     });
 
     this.proc.on("exit", (code) => {
       this.isReady = false;
       this.emit("status", {
-        state: "stopped",
-        code,
+        state: "error",
+        message: `Local server exited with code ${code}`,
       });
     });
 

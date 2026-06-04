@@ -100,12 +100,7 @@ jobs:
           # Code-signing secrets (optional but recommended for public release).
           # Leave unset and the build still produces an UNSIGNED installer that
           # works but shows an OS warning on first run. See DOWNLOAD_SETUP.md.
-          CSC_LINK: ${{ secrets.WINDOWS_CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CSC_KEY_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          # electron-builder publishes nothing itself; the release job does it.
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run build
 

@@ -121,9 +121,7 @@ app.whenReady().then(async () => {
     sendToMain("server-status", s);
   });
 
-  server.on("log", (line) => {
-    console.log("[server]", line);
-  });
+  server.on("log", (line) => console.log("[server]", line));
 
   server.on("error", (err) => {
     console.error("[server error]", err);

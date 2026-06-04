@@ -1,0 +1,76 @@
+{
+  "name": "coachai-desktop",
+  "version": "1.0.0",
+  "description": "CoachAI — your personal Overwatch 2 coach. Records, analyses, and coaches you live.",
+  "author": "CoachAI",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:server": "node scripts/build-server.js",
+    "build": "npm run build:server && electron-builder",
+    "build:win": "npm run build:server && electron-builder --win",
+    "build:mac": "npm run build:server && electron-builder --mac",
+    "build:linux": "npm run build:server && electron-builder --linux",
+    "dist": "npm run build"
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "gg.coachai.desktop",
+    "productName": "CoachAI",
+    "copyright": "Copyright © 2026 CoachAI",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "!**/*.map"
+    ],
+    "extraResources": [
+      {
+        "from": "server-dist",
+        "to": "server",
+        "filter": ["**/*"]
+      }
+    ],
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "icon": "build/icon.ico",
+      "artifactName": "CoachAI-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false
+    },
+    "mac": {
+      "target": [{ "target": "dmg", "arch": ["x64", "arm64"] }],
+      "icon": "build/icon.icns",
+      "category": "public.app-category.games",
+      "hardenedRuntime": true,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "dmg": {
+      "title": "Install CoachAI"
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "icon": "build/icon.png",
+      "category": "Game"
+    },
+    "protocols": [
+      {
+        "name": "CoachAI",
+        "schemes": ["coachai"]
+      }
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+# CoachAI — slim deps for the BUNDLED desktop server (local mode, API vision).
+# No torch (API vision), no Celery/Redis (inline jobs), no Postgres/S3/Stripe.
+# Generated from requirements.txt; see that file for the full cloud deployment set.
+
+# ── API ──
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
+pydantic==2.7.4
+pydantic-settings==2.3.4
+python-multipart==0.0.9
+
+# ── Auth ──
+pyjwt==2.8.0
+passlib[bcrypt]==1.7.4
+
+# ── DB ──
+sqlalchemy==2.0.31
+aiosqlite==0.20.0
+
+
+# ── Storage ──
+
+# ── LLM ──
+anthropic==0.31.2
+
+# ── HTTP / TTS ──
+httpx==0.27.0
+
+
+pillow==10.4.0

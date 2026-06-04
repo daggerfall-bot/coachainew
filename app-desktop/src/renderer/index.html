@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src http://127.0.0.1:* ws://127.0.0.1:*;">
+<title>CoachAI</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080C10;--bg2:#0D1117;--bg3:#161B22;--bg4:#1E2530;
+  --orange:#F99E1A;--orange2:#e67e00;--blue:#4FC3F7;--green:#3FB950;--red:#F85149;--discord:#5865F2;
+  --border:rgba(249,158,26,.14);--border2:rgba(255,255,255,.08);
+  --text:#E6EDF3;--muted:#8B949E;
+  --font:'DM Sans',sans-serif;--display:'Rajdhani',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh;overflow:hidden;user-select:none}
+.app{height:100vh;display:flex;flex-direction:column}
+
+/* drag region for frameless feel on the top strip */
+.titlebar{height:38px;-webkit-app-region:drag;display:flex;align-items:center;padding:0 16px;gap:8px;flex-shrink:0;border-bottom:1px solid var(--border)}
+.titlebar .logo{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:.5px}
+.titlebar .logo span{color:var(--orange)}
+.titlebar .dot{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.titlebar .dot.on{background:var(--green)}
+.titlebar .status-text{font-size:11px;color:var(--muted);margin-left:auto}
+
+.screen{flex:1;display:none;flex-direction:column;overflow-y:auto}
+.screen.active{display:flex}
+
+/* ── Login ── */
+#login{align-items:center;justify-content:center;text-align:center;padding:40px}
+.login-logo{font-family:var(--display);font-size:42px;font-weight:700;letter-spacing:1px;margin-bottom:8px}
+.login-logo span{color:var(--orange)}
+.login-tag{font-size:14px;color:var(--muted);margin-bottom:40px;max-width:340px;line-height:1.5}
+.discord-btn{background:var(--discord);color:#fff;border:none;border-radius:10px;padding:14px 28px;font-size:15px;font-weight:600;font-family:var(--display);letter-spacing:.3px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:filter .15s}
+.discord-btn:hover{filter:brightness(1.1)}
+.discord-btn svg{width:20px;height:20px;fill:currentColor}
+.login-fine{font-size:11px;color:var(--muted);margin-top:24px;max-width:300px;line-height:1.5}
+
+/* ── Home / status ── */
+#home{padding:32px 40px}
+.hero-status{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:32px;text-align:center;margin-bottom:20px;position:relative;overflow:hidden}
+.hero-status::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(249,158,26,.1),transparent 70%)}
+.status-ring{width:88px;height:88px;margin:0 auto 18px;position:relative}
+.status-ring .pulse{position:absolute;inset:0;border-radius:50%;border:2px solid var(--orange);opacity:0;animation:ring-pulse 2s infinite}
+@keyframes ring-pulse{0%{transform:scale(.8);opacity:.7}100%{transform:scale(1.4);opacity:0}}
+.status-ring .core{position:absolute;inset:14px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:32px}
+.status-headline{font-family:var(--display);font-size:24px;font-weight:600;margin-bottom:6px}
+.status-sub{font-size:14px;color:var(--muted);line-height:1.5;max-width:420px;margin:0 auto}
+.rec-badge{display:none;align-items:center;gap:7px;background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.3);color:var(--red);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:500;margin:14px auto 0;width:fit-content}
+.rec-badge.show{display:flex}
+.rec-badge .rdot{width:8px;height:8px;border-radius:50%;background:var(--red);animation:blink 1.2s infinite}
+@keyframes blink{50%{opacity:.4}}
+
+.checks{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
+.check{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px}
+.check-icon{font-size:22px;margin-bottom:8px}
+.check-label{font-size:13px;font-weight:500;margin-bottom:3px}
+.check-state{font-size:12px;color:var(--muted)}
+.check.ok .check-state{color:var(--green)}
+.check.wait .check-state{color:var(--orange)}
+
+.live-tips{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px;min-height:120px}
+.live-tips h3{font-family:var(--display);font-size:15px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.live-tips h3 .live-dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.live-tips h3 .live-dot.on{background:var(--red);animation:blink 1.2s infinite}
+.tip-line{font-size:13px;padding:8px 10px;border-radius:7px;background:var(--bg3);border-left:3px solid var(--muted);margin-bottom:6px}
+.tip-line.critical{border-left-color:var(--red)}
+.tip-line.improve{border-left-color:var(--orange)}
+.tip-line.info{border-left-color:var(--blue)}
+.tip-line.good{border-left-color:var(--green)}
+.tips-empty{font-size:13px;color:var(--muted);text-align:center;padding:24px 0}
+
+.footer-actions{display:flex;gap:10px;margin-top:20px}
+.btn{flex:1;padding:11px;border-radius:9px;font-size:13px;font-weight:600;font-family:var(--display);letter-spacing:.3px;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--text)}
+.btn:hover{background:var(--bg4)}
+.btn-primary{background:var(--orange);color:#000;border:none}
+.btn-primary:hover{background:var(--orange2)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="titlebar">
+    <span class="logo"><span>COACH</span>AI</span>
+    <span class="dot" id="tb-dot"></span>
+    <span class="status-text" id="tb-status">Starting engine…</span>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="screen" id="login">
+    <div class="login-logo"><span>COACH</span>AI</div>
+    <div class="login-tag">Your personal Overwatch 2 coach. It watches you play and tells you exactly how to climb.</div>
+    <button class="discord-btn" id="discord-login">
+      <svg viewBox="0 0 24 24"><path d="M20.3 4.4A19.8 19.8 0 0015.4 3l-.2.5c1.8.4 2.6.9 3.5 1.6a13.3 13.3 0 00-11.4 0c.9-.7 1.9-1.3 3.5-1.6L10.6 3a19.8 19.8 0 00-4.9 1.4C2.5 9.2 1.6 13.9 2 18.5a19.9 19.9 0 006 3l.5-.8c-.9-.3-1.7-.7-2.5-1.3l.6-.4a14.2 14.2 0 0011.8 0l.6.4c-.8.6-1.6 1-2.5 1.3l.5.8a19.9 19.9 0 006-3c.5-5.4-.8-10-3.2-14.1zM9 15.3c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2zm6 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2z"/></svg>
+      Sign in with Discord
+    </button>
+    <div class="login-fine">First time here? Signing in creates your account automatically. We only read your Discord username — nothing else.</div>
+  </div>
+
+  <!-- HOME -->
+  <div class="screen" id="home">
+    <div class="hero-status">
+      <div class="status-ring"><div class="pulse" id="ring-pulse" style="display:none"></div><div class="core" id="ring-core">🎮</div></div>
+      <div class="status-headline" id="home-headline">Watching for Overwatch</div>
+      <div class="status-sub" id="home-sub">Launch Overwatch 2 and CoachAI starts recording automatically. You don't need to do anything — just play.</div>
+      <div class="rec-badge" id="rec-badge"><span class="rdot"></span>Recording &amp; coaching live</div>
+    </div>
+
+    <div class="checks">
+      <div class="check" id="check-engine"><div class="check-icon">⚙️</div><div class="check-label">Coaching engine</div><div class="check-state">Starting…</div></div>
+      <div class="check" id="check-game"><div class="check-icon">🎯</div><div class="check-label">Overwatch 2</div><div class="check-state">Not detected</div></div>
+      <div class="check" id="check-account"><div class="check-icon">👤</div><div class="check-label">Account</div><div class="check-state">Signed in</div></div>
+    </div>
+
+    <div class="live-tips">
+      <h3><span class="live-dot" id="live-dot"></span>Live coaching</h3>
+      <div id="tips-feed"><div class="tips-empty">Tips will appear here while you play.</div></div>
+    </div>
+
+    <div class="footer-actions">
+      <button class="btn" id="btn-reports">View my reports</button>
+      <button class="btn" id="btn-settings">Settings</button>
+    </div>
+  </div>
+</div>
+<script type="module" src="app.js"></script>
+</body>
+</html>

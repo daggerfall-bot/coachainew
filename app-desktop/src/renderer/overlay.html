@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,sans-serif}
+body{background:transparent;overflow:hidden}
+#card{background:rgba(13,17,23,.93);border:1px solid rgba(249,158,26,.4);border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:14px;backdrop-filter:blur(10px);box-shadow:0 10px 40px rgba(0,0,0,.6);transform:translateY(-120%);transition:transform .3s cubic-bezier(.2,.9,.3,1.2)}
+#card.in{transform:translateY(0)}
+#icon{font-size:26px;flex-shrink:0}
+#text{color:#E6EDF3;font-size:15px;font-weight:500;line-height:1.3}
+.critical #card{border-color:rgba(248,81,73,.65)}
+.improve #card{border-color:rgba(249,158,26,.65)}
+.good #card{border-color:rgba(63,185,80,.6)}
+</style></head>
+<body>
+<div id="wrap"><div id="card"><span id="icon">⚡</span><span id="text"></span></div></div>
+<script>
+let hideTimer=null;
+const card=document.getElementById('card');
+window.desktop.onTip((tip)=>{
+  document.getElementById('wrap').className=tip.severity||'info';
+  document.getElementById('text').textContent=tip.text;
+  document.getElementById('icon').textContent=tip.severity==='critical'?'⚠️':tip.severity==='improve'?'⚡':tip.severity==='good'?'✅':'💡';
+  card.classList.add('in');
+  // speak it
+  try{const u=new SpeechSynthesisUtterance(tip.text);u.rate=1.08;speechSynthesis.speak(u);}catch(e){}
+  clearTimeout(hideTimer);
+  hideTimer=setTimeout(()=>{card.classList.remove('in');setTimeout(()=>window.desktop.hideOverlay(),350);},4500);
+});
+</script>
+</body></html>

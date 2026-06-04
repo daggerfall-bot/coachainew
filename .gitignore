@@ -1,0 +1,27 @@
+# Node
+node_modules/
+app-desktop/dist/
+app-desktop/server-dist/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+build/*.spec
+backend/build/
+backend/dist/
+
+# Local app data (bundled server writes here at runtime)
+backend/coachai_data/
+*.db
+*.sqlite
+
+# Env / secrets — NEVER commit these
+.env
+backend/.env
+backend/.env.local
+
+# OS
+.DS_Store
+Thumbs.db

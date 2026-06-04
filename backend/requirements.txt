@@ -1,0 +1,39 @@
+# ── API ──
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
+gunicorn==22.0.0
+pydantic==2.7.4
+pydantic-settings==2.3.4
+python-multipart==0.0.9
+
+# ── Auth ──
+pyjwt==2.8.0
+passlib[bcrypt]==1.7.4
+
+# ── DB ──
+sqlalchemy==2.0.31
+asyncpg==0.29.0
+aiosqlite==0.20.0
+alembic==1.13.2
+
+# ── Queue ──
+celery==5.4.0
+redis==5.0.7
+
+# ── Storage ──
+aioboto3==13.1.1
+
+# ── LLM ──
+anthropic==0.31.2
+
+# ── HTTP / TTS ──
+httpx==0.27.0
+
+# ── Billing ──
+stripe==9.12.0
+
+# ── Vision (GPU box / worker only) ──
+torch==2.3.1
+torchvision==0.18.1
+pillow==10.4.0
+pytesseract==0.3.10

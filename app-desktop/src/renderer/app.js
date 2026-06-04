@@ -114,6 +114,7 @@ $("discord-login").addEventListener("click", async () => {
   // Ask the local server for the Discord authorize URL, open it in the real
   // browser. The deep-link callback (coachai://auth?token=) returns the token.
   if (!state.serverBaseUrl) return;
+
   window.desktop.openExternal(
     `${state.serverBaseUrl}/api/v1/auth/discord/start`,
   );

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "CoachAI — your personal Overwatch 2 coach. Records, analyses, and coaches you live.",
   "author": "CoachAI",
+  "repository": "https://github.com/daggerfall-bot/coachainew",
   "main": "src/main/main.js",
   "scripts": {
     "start": "electron .",

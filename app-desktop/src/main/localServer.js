@@ -47,7 +47,7 @@ class LocalServer extends EventEmitter {
       ...process.env,
       COACHAI_LOCAL_MODE: "1",
       COACHAI_PORT: String(this.port),
-      DATABASE_URL: "sqlite+aiosqlite:///./coachai_local.db",
+          DATABASE_URL: "sqlite+aiosqlite:///" + require("electron").app.getPath("userData").replace(/\\/g, "/") + "/coachai_local.db",
 
       // IMPORTANT: packaged build should use API mode for now.
       // Do not use self_hosted until torch/model packaging is finished.

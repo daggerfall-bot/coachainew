@@ -1,15 +1,13 @@
 /**
- * CoachAI Desktop — Server bundling step.
+ * CoachAI Desktop — Server bundling step (PyInstaller).
  *
- * Runs before electron-builder. Uses PyInstaller to compile the Python backend
- * (../backend) into a single standalone executable placed in ./server-dist,
- * which electron-builder then copies into the app's resources/server/.
+ * Compiles backend/ into a single standalone executable in ./server-dist,
+ * which electron-builder copies into resources/server/.
  *
- * Result: the shipped app contains a self-contained backend binary — the user
- * needs NO Python install. This is the price of the "bundled local server"
- * choice: a larger download, but a true double-click experience.
- *
- * Requires (on YOUR build machine, once): python3 + `pip install pyinstaller`.
+ * Robustness notes (these prevent the "server starts then instantly dies"
+ * class of bug): we --collect-all the packages PyInstaller most often
+ * under-bundles for async/ASGI + pydantic stacks, and add explicit
+ * hidden-imports for submodules it can't see through dynamic imports.
  */
 const { execSync } = require("child_process");
 const fs = require("fs");
@@ -25,8 +23,6 @@ if (!fs.existsSync(backendDir)) {
   process.exit(1);
 }
 
-// A spec-free one-file build. The entrypoint imports the FastAPI app and runs
-// uvicorn programmatically (see backend/app/standalone.py).
 const cmd = [
   "pyinstaller",
   "--onefile",
@@ -34,14 +30,23 @@ const cmd = [
   `--distpath "${outDir}"`,
   "--clean",
   "--noconfirm",
-  // hidden imports PyInstaller can miss for async stacks:
-  "--hidden-import uvicorn.logging",
+  // --collect-all pulls in ALL submodules/data/dynamic libs for these packages,
+  // which is the reliable way to stop runtime ImportErrors in a frozen binary.
+  "--collect-all uvicorn",
+  "--collect-all anthropic",
+  "--collect-all pydantic",
+  "--collect-all passlib",
+  "--collect-all sqlalchemy",
+  "--collect-all aiosqlite",
+  "--collect-all httpx",
+  // Explicit hidden imports for things even --collect-all can miss.
   "--hidden-import uvicorn.protocols.http.auto",
   "--hidden-import uvicorn.protocols.websockets.auto",
   "--hidden-import uvicorn.lifespan.on",
-  "--hidden-import aiosqlite",
-  "--hidden-import anthropic",
-  "--hidden-import sqlalchemy.dialects.sqlite",
+  "--hidden-import passlib.handlers.bcrypt",
+  "--hidden-import sqlalchemy.dialects.sqlite.aiosqlite",
+  // The whole app package, so frozen imports of app.* resolve.
+  "--paths .",
   `"${path.join(backendDir, "app", "standalone.py")}"`,
 ].join(" ");
 

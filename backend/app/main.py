@@ -23,10 +23,17 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
 
+# In local desktop mode the server is private to the user's machine and the
+# Electron renderer calls it from a file:// origin (and from 127.0.0.1:<random
+# port>). Allow all origins locally so those calls aren't blocked by CORS. The
+# cloud deployment keeps a strict allow-list.
+_origins = ["*"] if settings.local_mode else [
+    "https://app.coachai.gg", "http://localhost:5173",
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://app.coachai.gg", "http://localhost:5173"],
-    allow_credentials=True,
+    allow_origins=_origins,
+    allow_credentials=False if settings.local_mode else True,
     allow_methods=["*"],
     allow_headers=["*"],
 )

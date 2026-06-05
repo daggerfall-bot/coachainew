@@ -104,16 +104,32 @@ async def discord_callback(code: str | None = None, error: str | None = None):
     return RedirectResponse(f"{settings.discord_redirect_deeplink}?token={token}")
 
 
+@router.post("/auth/local")
+async def auth_local(payload: dict):
+    """
+    Direct in-app login for the desktop build. The renderer POSTs
+    {"email": "..."} and gets {"token": "..."} straight back — no browser, no
+    deep link, no OAuth round trip. This is the reliable path that makes the
+    app usable today. (Discord OAuth remains available for when the cloud shim
+    exists.) Not password auth — a local-app convenience login.
+    """
+    if not settings.local_mode:
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+    email = str(payload.get("email", "")).strip().lower()
+    if "@" not in email or "." not in email.split("@")[-1]:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid email")
+    name = payload.get("name") or email.split("@")[0] or "Player"
+    token = await _issue_token_for(email, name)
+    return {"token": token, "plan": "pro"}
+
+
 @router.get("/auth/email/start")
 async def email_start(email: str, name: str | None = None):
     """
-    Generic desktop email login.
+    Generic desktop email login (browser + deep-link variant).
 
-    This is intentionally simple for the local desktop build: the user enters
-    an email address, we create/load a local account, and deep-link a token
-    back into the Electron app.
-
-    This is not password auth. It is a local-app convenience login.
+    Kept for the OAuth-style flow. The /auth/local POST above is the simpler,
+    more reliable path the desktop app uses by default.
     """
     if not settings.local_mode:
         raise HTTPException(status.HTTP_404_NOT_FOUND)

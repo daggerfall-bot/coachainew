@@ -109,55 +109,68 @@ function addTip(tip) {
   while (feed.children.length > 8) feed.lastChild.remove();
 }
 
-// ── Discord login ──
+// ── Login ──
 function requireServerReady() {
   if (!state.serverBaseUrl || !state.serverReady) {
     alert("CoachAI is still starting. Wait a few seconds, then try again.");
     return false;
   }
-
   return true;
+}
+
+// Direct in-app login: POST the email, get a token straight back. No browser,
+// no deep link — the reliable path that works today.
+async function loginWithEmail(email) {
+  const res = await fetch(`${state.serverBaseUrl}/api/v1/auth/local`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) {
+    const msg = await res.text();
+    throw new Error(msg || `Login failed (${res.status})`);
+  }
+  const data = await res.json();
+  return data.token;
 }
 
 const discordBtn = $("discord-login");
 
+// Discord stays as a (browser+deeplink) option for when the cloud shim exists.
 discordBtn.addEventListener("click", async () => {
   if (!requireServerReady()) return;
-
-  window.desktop.openExternal(
-    `${state.serverBaseUrl}/api/v1/auth/discord/start`,
-  );
+  window.desktop.openExternal(`${state.serverBaseUrl}/api/v1/auth/discord/start`);
 });
 
-// Add a simple generic email/Gmail login button without needing to edit HTML.
+// Email/Gmail button — now uses the direct, reliable login.
 const emailBtn = document.createElement("button");
 emailBtn.id = "email-login";
 emailBtn.className = discordBtn.className;
 emailBtn.style.marginTop = "12px";
 emailBtn.textContent = "Sign in with Email / Gmail";
-
 discordBtn.insertAdjacentElement("afterend", emailBtn);
 
 emailBtn.addEventListener("click", async () => {
   if (!requireServerReady()) return;
-
   const email = prompt("Enter your email address:");
-
   if (!email) return;
-
   const trimmed = email.trim().toLowerCase();
-
   if (!trimmed.includes("@") || !trimmed.split("@")[1]?.includes(".")) {
     alert("Please enter a valid email address.");
     return;
   }
-
-  window.desktop.openExternal(
-    `${state.serverBaseUrl}/api/v1/auth/email/start?email=${encodeURIComponent(trimmed)}`,
-  );
+  try {
+    const token = await loginWithEmail(trimmed);
+    state.token = token;
+    localStorage.setItem("coachai_token", token);
+    routeByAuth();
+    renderStatus();
+  } catch (e) {
+    alert("Login failed: " + (e?.message || e));
+  }
 });
 
-// Deep-link token arrives from the main process.
+// Deep-link token (Discord flow) still supported if it ever arrives.
 window.desktop.onAuthCallback(({ token, error }) => {
   if (error || !token) return;
   state.token = token;

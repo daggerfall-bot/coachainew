@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel  # EmailStr avoided: needs email-validator, not bundled
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,13 +20,13 @@ router = APIRouter()
 
 # ─────────────────────────── Auth ───────────────────────────
 class RegisterIn(BaseModel):
-    email: EmailStr
+    email: str
     password: str
     display_name: str = "Player"
 
 
 class LoginIn(BaseModel):
-    email: EmailStr
+    email: str
     password: str
 
 

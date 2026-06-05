@@ -87,10 +87,12 @@ class LocalServer extends EventEmitter {
 
     this.proc.stdout.on("data", (d) => {
       this.emit("log", d.toString().trim());
+      this._appendLog(d.toString());
     });
 
     this.proc.stderr.on("data", (d) => {
       this.emit("log", d.toString().trim());
+      this._appendLog(d.toString());
     });
 
     this.proc.on("error", (err) => {
@@ -122,7 +124,7 @@ class LocalServer extends EventEmitter {
     return this.baseUrl;
   }
 
-  _waitForHealth(timeoutMs = 60_000) {
+  _waitForHealth(timeoutMs = 120_000) {
     const deadline = Date.now() + timeoutMs;
     const url = `${this.baseUrl}/health`;
 
@@ -155,6 +157,16 @@ class LocalServer extends EventEmitter {
 
       tryOnce();
     });
+  }
+
+  _appendLog(text) {
+    try {
+      const { app } = require("electron");
+      const logPath = path.join(app.getPath("userData"), "server.log");
+      fs.appendFileSync(logPath, text);
+    } catch {
+      /* logging is best-effort */
+    }
   }
 
   async stop() {
